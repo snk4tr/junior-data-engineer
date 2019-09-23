@@ -28,4 +28,4 @@ docker run \
   --user "$(id -u)":"$(id -g)" \
   --ipc=host \
   ${imageName}:${imageTag} \
-  python app.py
+  flask run --host=0.0.0.0

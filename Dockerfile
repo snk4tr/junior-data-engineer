@@ -2,7 +2,13 @@ FROM ufoym/deepo:pytorch
 
 LABEL maintainer="sergey.kastryulin@philips.com"
 
+# ===========================================================
+# Copy configuration file and set env variables for Flask
+# -----------------------------------------------------------
+
 COPY requirements.txt /tmp/
+ENV FLASK_APP=junior_data_engineer
+ENV FLASK_ENV=development
 
 # ===========================================================
 # Allows to use package managers behind company's firewall

@@ -26,6 +26,18 @@ you personal info and set of parameters you prefer.
 3. Start the run script, it will do all the work:    
 `$ bash run.sh <port>`, where `<port>`  is http-port on host machine.
 
+### Testing
+
+Run the main run script with additional `Test` parameter:  
+`$ bash run.sh <port> Test`
+
+It will test whether the app works at all and whether the model makes correct predictions. 
+To test that the app actually returns correct responses on images sent with POST, use `curl`:  
+`$ curl -F 'file=@<local file path>' http://<external ip>:<port>/predict`
+
+Example:  
+`$ curl -F 'file=@/Users/snk/Downloads/7.png' http://130.138.20.25:8108/predict`
+
 ## Built with
 
 * Docker image based on [Deepo](https://github.com/ufoym/deepo)

@@ -9,3 +9,6 @@ general:
   weights_root_folder: resources
   output_folder: out
   device: "cuda:1"
+
+testing:
+  sample_image_path: tests/resources/7.png

@@ -2,6 +2,7 @@
 
 ####################################  SCRIPT ARGUMENTS  ####################################
 port=$1
+testing=${2:-0}
 
 ####################################  LOCAL VARIABLES  ####################################
 
@@ -24,6 +25,11 @@ echo "The image was built. Running container..."
 
 ####################################  RUN CONTAINER  ####################################
 
+runCommand='flask run --host=0.0.0.0'
+if [[ "${testing}" == "Test" ]]; then
+  runCommand='python -m pytest tests/'
+fi
+
 docker run \
   --runtime=nvidia \
   --rm \
@@ -33,4 +39,4 @@ docker run \
   --user "$(id -u)":"$(id -g)" \
   --ipc=host \
   ${imageName}:${imageTag} \
-  flask run --host=0.0.0.0
+  ${runCommand}

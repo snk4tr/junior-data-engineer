@@ -1,51 +1,38 @@
 import torch
 import os
 import re
-import pytz
 
-from datetime import datetime, timedelta
-
-from junior_data_engineer.graphs import TransformerNet
-from junior_data_engineer.util.common import convert_image_to_torch_tensor, save_torch_image, convert_torch_tensor_to_image
+from junior_data_engineer.graphs import MnistNet
 
 
-class StyleModel:
+class MnistModel:
     def __init__(self, config):
         self.name = self.__class__.__name__.lower()[:-5]  # remove postfix 'model' from name.
+
+        self.__device = self.__config['general']['device']
+        if self.__device is None:
+            self.__device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
         self.__config = config
         self.__model = self.__init_model()
 
-    def predict(self, content_image):
+    def predict(self, digit_image: torch.Tensor) -> int:
         """
-        Perform inference of style model.
+        Perform inference of MNIST model.
         Args:
-            content_image(torch.Tensor): content image to be stylized.
-        Returns(torch.Tensor):
-            stylized image.
+            digit_image(torch.Tensor): content image to be recognized.
+
+        Returns(int):
+            the number from the picture.
         """
+        self.__model.eval()
         with torch.no_grad():
-            output = self.__model(content_image).cpu()
+            log_probs = self.__model(digit_image).cpu()
+            print('log_probs:', log_probs)
 
-        return output[0]
-
-    def stylize_image(self, content_image):
-        """
-        Perform stylization of content image.
-        Args:
-            content_image(np.ndarray): content image to be stylized.
-        Returns(np.ndarray):
-            stylized image.
-        """
-        device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-        content_image = convert_image_to_torch_tensor(content_image, device=device)
-
-        stylized_image = self.predict(content_image)
-        stylized_image = convert_torch_tensor_to_image(stylized_image)
-
-        save_path = self.__save_path()
-        save_torch_image(data=stylized_image, filename=save_path)
-        return stylized_image
+        probs = torch.exp(log_probs)
+        probab = list(probs.cpu().numpy()[0])
+        return probab.index(max(probab))
 
     def __init_model(self):
         """
@@ -53,11 +40,9 @@ class StyleModel:
         Returns(torch.nn.Module):
             ready for inference initialized style model.
         """
-        device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-
         weights_to_use_path = self.__weights_path()
         with torch.no_grad():
-            style_model = TransformerNet()
+            style_model = MnistNet(self.__config)
             state_dict = torch.load(weights_to_use_path)
 
             # remove saved deprecated running_* keys in InstanceNorm from the checkpoint
@@ -66,7 +51,7 @@ class StyleModel:
                     del state_dict[k]
 
             style_model.load_state_dict(state_dict)
-            style_model.to(device)
+            style_model.to(self.__device)
 
         return style_model
 
@@ -86,21 +71,3 @@ class StyleModel:
         assert os.path.isfile(weights_path), f"Found weights are not file! (Folder? O_o)"
 
         return weights_path
-
-    def __save_path(self):
-        """
-        Define path where models output will be saved.
-        Returns(str):
-            path where models output will be saved.
-        """
-        out_folder = self.__config['general']['output_folder']
-        os.makedirs(out_folder, exist_ok=True)
-
-        today = datetime.now(pytz.utc)
-
-        # Add 3 hours since I live in UTC+3
-        today += timedelta(hours=3)
-
-        out_fname = f'{self.name}_{today.day}_{today.month}_{today.year}_{today.hour}_{today.minute}_{today.second}.jpg'
-        out_fpath = os.path.join(out_folder, out_fname)
-        return out_fpath

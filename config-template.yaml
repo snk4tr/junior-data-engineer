@@ -1,13 +1,11 @@
-style:
-  img_side: 256
+model:
+  input_size: 784
+  layer1: 128
+  layer2: 64
+  output_size: 10
   weights_name:
 
 general:
   weights_root_folder: resources
   output_folder: out
   device: "cuda:1"
-
-test:
-  root_folder: tests
-  resources_folder: resources
-  style_example_image:

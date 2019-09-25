@@ -1,3 +1,8 @@
+#!/usr/bin/env bash
+
+####################################  SCRIPT ARGUMENTS  ####################################
+port=$1
+
 ####################################  LOCAL VARIABLES  ####################################
 
 containerName=junior-data-engineer-$RANDOM
@@ -24,7 +29,7 @@ docker run \
   --rm \
   --name ${containerName} \
   -v "${projectDir}":"${projectDir}" \
-  -p 8108:5000 \
+  -p "${port}":5000 \
   --user "$(id -u)":"$(id -g)" \
   --ipc=host \
   ${imageName}:${imageTag} \
